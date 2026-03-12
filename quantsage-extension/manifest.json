@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "QuantSage - AI Financial Analyst",
+  "version": "1.0.0",
+  "description": "Professional-grade AI financial analyst for portfolio management and real-time market intelligence",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "alarms",
+    "notifications",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://www.alphavantage.co/*",
+    "https://query1.finance.yahoo.com/*",
+    "https://query2.finance.yahoo.com/*",
+    "https://finnhub.io/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["config.js", "utils/storage.js", "utils/api.js", "utils/marketData.js", "utils/technicalAnalysis.js", "components/stockCard.js", "components/watchlist.js", "components/marketOverview.js", "components/chatPanel.js", "content.js"],
+      "css": ["content.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "QuantSage - AI Financial Analyst",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*", "components/*", "utils/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
