@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QuantSage Icon Generator</title>
+  <style>
+    body { background: #0a0e1a; color: #e2e8f0; font-family: system-ui, sans-serif; padding: 20px; }
+    h1 { color: #00d4aa; margin-bottom: 20px; }
+    .icon-row { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
+    .icon-item { text-align: center; }
+    canvas { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; display: block; margin-bottom: 8px; }
+    .download-btn {
+      display: inline-block; padding: 6px 12px;
+      background: linear-gradient(135deg, #00d4aa, #3b82f6);
+      color: #fff; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 12px; text-decoration: none;
+    }
+    p { color: #94a3b8; font-size: 13px; max-width: 600px; line-height: 1.6; }
+    code { background: rgba(0,212,170,0.1); color: #00d4aa; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>QuantSage Icon Generator</h1>
+  <p>Click "Download" for each icon and save them to the <code>icons/</code> folder as <code>icon16.png</code>, <code>icon48.png</code>, and <code>icon128.png</code>.</p>
+  <div class="icon-row" id="icons"></div>
+  <p>After downloading all three icons, reload the extension in Chrome at <code>chrome://extensions/</code>.</p>
+
+  <script>
+    const sizes = [
+      { size: 16, label: 'icon16.png' },
+      { size: 48, label: 'icon48.png' },
+      { size: 128, label: 'icon128.png' }
+    ];
+
+    const container = document.getElementById('icons');
+
+    sizes.forEach(({ size, label }) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Background
+      const bg = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+      bg.addColorStop(0, '#141b2d');
+      bg.addColorStop(1, '#0a0e1a');
+      ctx.fillStyle = bg;
+      const r = size * 0.2;
+      roundRect(ctx, 0, 0, size, size, r);
+      ctx.fill();
+
+      // Chart line (teal)
+      ctx.strokeStyle = '#00d4aa';
+      ctx.lineWidth = Math.max(1, size * 0.06);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const margin = size * 0.15;
+      const chartH = size * 0.38;
+      const chartY = size * 0.28;
+      const points = [
+        [margin, chartY + chartH * 0.7],
+        [size * 0.3, chartY + chartH * 0.4],
+        [size * 0.5, chartY + chartH * 0.65],
+        [size * 0.7, chartY + chartH * 0.15],
+        [size - margin, chartY]
+      ];
+
+      ctx.beginPath();
+      points.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+      ctx.stroke();
+
+      // "QS" text
+      if (size >= 48) {
+        ctx.font = `bold ${Math.round(size * 0.28)}px system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillText('QS', size / 2, size * 0.88);
+      } else if (size >= 24) {
+        ctx.font = `bold ${Math.round(size * 0.4)}px system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#00d4aa';
+        ctx.fillText('Q', size / 2, size * 0.75);
+      }
+
+      // Teal dot accent
+      ctx.fillStyle = '#00d4aa';
+      ctx.beginPath();
+      ctx.arc(size - margin, chartY, Math.max(2, size * 0.07), 0, Math.PI * 2);
+      ctx.fill();
+
+      // Create download link
+      const div = document.createElement('div');
+      div.className = 'icon-item';
+      canvas.style.width = `${Math.max(size, 64)}px`;
+      canvas.style.height = `${Math.max(size, 64)}px`;
+      canvas.style.imageRendering = 'pixelated';
+
+      const link = document.createElement('a');
+      link.textContent = `Download ${label}`;
+      link.className = 'download-btn';
+      link.download = label;
+      link.href = canvas.toDataURL('image/png');
+
+      div.appendChild(canvas);
+      div.appendChild(document.createElement('br'));
+      div.appendChild(document.createTextNode(`${size}×${size}`));
+      div.appendChild(document.createElement('br'));
+      div.appendChild(link);
+      container.appendChild(div);
+    });
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.arcTo(x + w, y, x + w, y + r, r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+      ctx.lineTo(x + r, y + h);
+      ctx.arcTo(x, y + h, x, y + h - r, r);
+      ctx.lineTo(x, y + r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    }
+  </script>
+</body>
+</html>

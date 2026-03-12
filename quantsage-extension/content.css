@@ -1,0 +1,57 @@
+/* QuantSage Content Script Styles
+   These are minimal host-page styles. The main styles live inside Shadow DOM via content.js
+*/
+
+/* Only the toggle button is outside shadow DOM */
+#quantsage-toggle-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00d4aa 0%, #3b82f6 100%);
+  color: #fff;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 212, 170, 0.4);
+  z-index: 2147483646;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+  user-select: none;
+}
+
+#quantsage-toggle-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(0, 212, 170, 0.55);
+}
+
+#quantsage-toggle-btn.qs-has-alert {
+  animation: qs-pulse 2s infinite;
+}
+
+@keyframes qs-pulse {
+  0% { box-shadow: 0 4px 20px rgba(0, 212, 170, 0.4); }
+  50% { box-shadow: 0 4px 32px rgba(0, 212, 170, 0.8), 0 0 0 8px rgba(0, 212, 170, 0.12); }
+  100% { box-shadow: 0 4px 20px rgba(0, 212, 170, 0.4); }
+}
+
+/* Shadow host */
+#quantsage-shadow-host {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  z-index: 2147483645;
+  pointer-events: none;
+}
+
+#quantsage-shadow-host.qs-open {
+  pointer-events: all;
+}

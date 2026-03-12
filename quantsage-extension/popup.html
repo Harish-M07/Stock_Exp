@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantSage</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="qs-popup">
+
+    <!-- Header -->
+    <div class="qs-popup-header">
+      <div class="qs-popup-brand">
+        <div class="qs-popup-logo">QS</div>
+        <div>
+          <div class="qs-popup-title">QuantSage</div>
+          <div class="qs-popup-subtitle">AI Financial Analyst</div>
+        </div>
+      </div>
+      <button class="qs-open-chat-btn" id="qs-open-chat">Open Chat ↗</button>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="qs-popup-tabs">
+      <button class="qs-popup-tab active" data-tab="overview">📊 Markets</button>
+      <button class="qs-popup-tab" data-tab="watchlist">👁 Watchlist</button>
+      <button class="qs-popup-tab" data-tab="search">🔍 Search</button>
+      <button class="qs-popup-tab" data-tab="settings">⚙ Settings</button>
+    </div>
+
+    <!-- Market Overview Tab -->
+    <div class="qs-popup-panel active" id="qs-tab-overview">
+      <div class="qs-section-label">🇮🇳 Indian Markets</div>
+      <div class="qs-index-grid" id="qs-indian-indices">
+        <div class="qs-skeleton"></div>
+        <div class="qs-skeleton"></div>
+        <div class="qs-skeleton"></div>
+      </div>
+      <div class="qs-section-label" style="margin-top:12px">🌍 Global Markets</div>
+      <div class="qs-index-grid" id="qs-global-indices">
+        <div class="qs-skeleton"></div>
+        <div class="qs-skeleton"></div>
+        <div class="qs-skeleton"></div>
+      </div>
+      <div class="qs-section-label" style="margin-top:12px">🏅 Commodities</div>
+      <div class="qs-index-grid" id="qs-commodities">
+        <div class="qs-skeleton"></div>
+        <div class="qs-skeleton"></div>
+        <div class="qs-skeleton"></div>
+      </div>
+      <div class="qs-refresh-bar">
+        <span id="qs-last-updated">Loading...</span>
+        <button class="qs-refresh-btn" id="qs-refresh-btn">↻ Refresh</button>
+      </div>
+    </div>
+
+    <!-- Watchlist Tab -->
+    <div class="qs-popup-panel" id="qs-tab-watchlist">
+      <div id="qs-watchlist-content">
+        <div class="qs-loading">Loading watchlist...</div>
+      </div>
+    </div>
+
+    <!-- Search Tab -->
+    <div class="qs-popup-panel" id="qs-tab-search">
+      <div class="qs-search-row">
+        <input type="text" class="qs-search-input" id="qs-search-input" placeholder="Enter ticker (e.g. RELIANCE, AAPL)..." autocomplete="off">
+        <button class="qs-search-btn" id="qs-search-btn">Analyze</button>
+      </div>
+      <div class="qs-quick-tickers">
+        <span class="qs-quick-label">Quick:</span>
+        <button class="qs-ticker-chip" data-ticker="RELIANCE">RELIANCE</button>
+        <button class="qs-ticker-chip" data-ticker="TCS">TCS</button>
+        <button class="qs-ticker-chip" data-ticker="INFY">INFY</button>
+        <button class="qs-ticker-chip" data-ticker="AAPL">AAPL</button>
+        <button class="qs-ticker-chip" data-ticker="MSFT">MSFT</button>
+      </div>
+      <div id="qs-search-result"></div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="qs-popup-panel" id="qs-tab-settings">
+      <div class="qs-settings-section">
+        <div class="qs-section-label">API Keys</div>
+        <label class="qs-field-label">Alpha Vantage API Key</label>
+        <input type="password" class="qs-field-input" id="qs-av-key" placeholder="Free key at alphavantage.co">
+        <label class="qs-field-label" style="margin-top:8px">Finnhub API Key (optional)</label>
+        <input type="password" class="qs-field-input" id="qs-fh-key" placeholder="Free key at finnhub.io">
+      </div>
+      <div class="qs-settings-section">
+        <div class="qs-section-label">Preferences</div>
+        <div class="qs-pref-row">
+          <span>Demo Mode</span>
+          <label class="qs-switch">
+            <input type="checkbox" id="qs-demo-mode" checked>
+            <span class="qs-slider"></span>
+          </label>
+        </div>
+        <div class="qs-pref-row">
+          <span>Price Notifications</span>
+          <label class="qs-switch">
+            <input type="checkbox" id="qs-notifications" checked>
+            <span class="qs-slider"></span>
+          </label>
+        </div>
+      </div>
+      <button class="qs-save-btn" id="qs-save-btn">Save Settings</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="qs-popup-footer">
+      <span>QuantSage v1.0.0</span>
+      <span>⚠ Educational use only</span>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="utils/storage.js"></script>
+  <script src="utils/api.js"></script>
+  <script src="utils/marketData.js"></script>
+  <script src="utils/technicalAnalysis.js"></script>
+  <script src="components/stockCard.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
