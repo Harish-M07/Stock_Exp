@@ -203,42 +203,109 @@ async function refreshWatchlistCache() {
   });
 }
 
-// ---- Fetch Quote (background context) ----
+// ---- Fetch Quote (background context) with multi-source fallback ----
 async function fetchQuoteBackground(ticker) {
   const settings = await getSettings();
-  const config = {
-    demoMode: settings.demoMode !== false,
-    alphaVantageKey: settings.alphaVantageKey
-  };
 
-  // Always use demo mode in background (no window.QUANTSAGE_CONFIG)
+  // Indian tickers set for currency detection
+  const INDIAN_TICKERS = new Set([
+    'RELIANCE','TCS','INFY','HDFCBANK','ITC','ADANIPOWER','ADANIENT','ADANIPORTS',
+    'WIPRO','SBIN','BAJFINANCE','BAJAJ-AUTO','TATAMOTORS','TATASTEEL','SUNPHARMA',
+    'LT','MARUTI','HCLTECH','AXISBANK','ICICIBANK','KOTAKBANK','BHARTIARTL',
+    'ASIANPAINT','ULTRACEMCO','TITAN','NESTLEIND','POWERGRID','NTPC','ONGC',
+    'COALINDIA','JSWSTEEL','TECHM','HINDALCO','DRREDDY','CIPLA','DIVISLAB',
+    'HEROMOTOCO','EICHERMOTOR','APOLLOHOSP','BPCL'
+  ]);
+
+  function isIndian(t) {
+    return INDIAN_TICKERS.has(t.toUpperCase()) || t.endsWith('.NS') || t.endsWith('.BO');
+  }
+
+  const upper = ticker.toUpperCase().trim();
+
+  // --- Priority 1: Indian Stock Market API (for Indian tickers) ---
+  if (isIndian(upper)) {
+    try {
+      const symbol = upper.includes('.') ? upper : `${upper}.NS`;
+      const resp = await fetch(`https://military-jobye-haiqstudios-14f59639.koyeb.app/stock?symbol=${encodeURIComponent(symbol)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        const result = data.chart && data.chart.result && data.chart.result[0];
+        if (result && result.meta && result.meta.regularMarketPrice) {
+          const meta = result.meta;
+          return {
+            symbol: upper,
+            price: parseFloat(meta.regularMarketPrice),
+            change: parseFloat(meta.regularMarketChange || 0),
+            changePercent: parseFloat(meta.regularMarketChangePercent || 0),
+            currency: 'INR',
+            dataSource: 'indian-api'
+          };
+        }
+      }
+    } catch (e) { /* fall through */ }
+  }
+
+  // --- Priority 2: Yahoo Finance ---
+  try {
+    const symbol = isIndian(upper) && !upper.includes('.') ? `${upper}.NS` : upper;
+    const resp = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`);
+    if (resp.ok) {
+      const data = await resp.json();
+      const result = data.chart && data.chart.result && data.chart.result[0];
+      if (result && result.meta && result.meta.regularMarketPrice) {
+        const meta = result.meta;
+        return {
+          symbol: upper,
+          price: parseFloat(meta.regularMarketPrice),
+          change: parseFloat(meta.regularMarketChange || 0),
+          changePercent: parseFloat(meta.regularMarketChangePercent || 0),
+          currency: isIndian(upper) ? 'INR' : (meta.currency || 'USD'),
+          dataSource: 'yahoo'
+        };
+      }
+    }
+  } catch (e) { /* fall through */ }
+
+  // --- Priority 3: Alpha Vantage (if key configured) ---
+  if (settings.alphaVantageKey) {
+    try {
+      const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${upper}&apikey=${settings.alphaVantageKey}`;
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const data = await resp.json();
+        const q = data['Global Quote'];
+        if (q && q['05. price']) {
+          return {
+            symbol: upper,
+            price: parseFloat(q['05. price']),
+            change: parseFloat(q['09. change']),
+            changePercent: parseFloat(q['10. change percent'].replace('%', '')),
+            currency: isIndian(upper) ? 'INR' : 'USD',
+            dataSource: 'alpha-vantage'
+          };
+        }
+      }
+    } catch (e) { /* fall through */ }
+  }
+
+  // --- Priority 4: Mock data fallback ---
   const mockStocks = {
     RELIANCE: { price: 2847.35, currency: 'INR' },
     TCS: { price: 4123.80, currency: 'INR' },
     INFY: { price: 1876.45, currency: 'INR' },
     HDFCBANK: { price: 1698.20, currency: 'INR' },
     ITC: { price: 464.75, currency: 'INR' },
+    ADANIPOWER: { price: 548.25, currency: 'INR' },
+    WIPRO: { price: 462.30, currency: 'INR' },
+    SBIN: { price: 782.45, currency: 'INR' },
+    BAJFINANCE: { price: 7124.60, currency: 'INR' },
+    TATAMOTORS: { price: 724.80, currency: 'INR' },
     AAPL: { price: 189.30, currency: 'USD' },
     MSFT: { price: 415.50, currency: 'USD' },
     GOOGL: { price: 175.85, currency: 'USD' },
     AMZN: { price: 198.45, currency: 'USD' }
   };
 
-  if (config.demoMode || !config.alphaVantageKey) {
-    return mockStocks[ticker.toUpperCase()] || null;
-  }
-
-  try {
-    const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${config.alphaVantageKey}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    const q = data['Global Quote'];
-    if (!q || !q['05. price']) return mockStocks[ticker.toUpperCase()] || null;
-    return {
-      price: parseFloat(q['05. price']),
-      currency: ticker.endsWith('.NS') || ticker.endsWith('.BO') ? 'INR' : 'USD'
-    };
-  } catch (e) {
-    return mockStocks[ticker.toUpperCase()] || null;
-  }
+  return mockStocks[upper] ? { ...mockStocks[upper], symbol: upper, dataSource: 'mock' } : null;
 }

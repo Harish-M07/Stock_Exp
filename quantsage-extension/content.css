@@ -55,3 +55,6 @@
 #quantsage-shadow-host.qs-open {
   pointer-events: all;
 }
+
+/* Connection status dot colours (used in Shadow DOM via JS) */
+/* 🟢 live: #22c55e | 🟡 cached: #eab308 | 🔴 demo: #ef4444 */
