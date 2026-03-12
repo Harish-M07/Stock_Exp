@@ -436,7 +436,7 @@
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <div class="qs-status"><div class="qs-status-dot"></div>Demo</div>
+        <div class="qs-status" id="qs-data-status"><div class="qs-status-dot" id="qs-status-dot"></div><span id="qs-status-label">Demo</span></div>
         <div class="qs-header-btns">
           <button class="qs-icon-btn" id="qs-minimize-btn" title="Minimize">−</button>
           <button class="qs-icon-btn" id="qs-close-btn" title="Close">✕</button>
@@ -489,7 +489,8 @@
     <div class="qs-quick-actions" id="qs-quick-actions">
       <button class="qs-quick-btn" data-cmd="/market">📊 Market</button>
       <button class="qs-quick-btn" data-cmd="/watchlist">👁 Watchlist</button>
-      <button class="qs-quick-btn" data-cmd="/analyze ">🔍 Analyze</button>
+      <button class="qs-quick-btn" data-cmd="/page">🔍 Page</button>
+      <button class="qs-quick-btn" data-cmd="/analyze ">🔎 Analyze</button>
       <button class="qs-quick-btn" data-cmd="/help">❓ Help</button>
     </div>
 
@@ -605,6 +606,10 @@
         const response = await QSChatPanel.processCommand(text);
         hideTypingIndicator();
         addMessage('bot', response);
+        // Update connection status indicator based on data source
+        if (typeof QSMarketData !== 'undefined' && QSMarketData.getDataSource) {
+          updateConnectionStatus(QSMarketData.getDataSource());
+        }
       } catch (err) {
         hideTypingIndicator();
         addMessage('bot', `❌ Error: ${err.message}`);
@@ -817,7 +822,7 @@
   });
 
   // Listen for messages from background
-  chrome.runtime.onMessage.addListener((msg) => {
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.type === 'PRICE_ALERT') {
       toggleBtn.classList.add('qs-has-alert');
       if (!isOpen) openPanel();
@@ -830,7 +835,63 @@
     if (msg.type === 'OPEN_PANEL') {
       if (!isOpen) openPanel();
     }
+    if (msg.type === 'SCRAPE_PAGE') {
+      // Respond with scraped page data (synchronous, no async needed)
+      const data = scrapePageForAnalysis();
+      sendResponse(data);
+      return true; // Required to keep message channel open
+    }
   });
+
+  // ---- Connection status indicator ----
+  function updateConnectionStatus(source) {
+    const dot = shadow.getElementById('qs-status-dot');
+    const label = shadow.getElementById('qs-status-label');
+    if (!dot || !label) return;
+    if (source === 'live') {
+      dot.style.background = '#22c55e';
+      dot.style.animation = 'none';
+      label.textContent = 'Live';
+    } else if (source === 'cache') {
+      dot.style.background = '#eab308';
+      dot.style.animation = 'none';
+      label.textContent = 'Cached';
+    } else {
+      dot.style.background = '#ef4444';
+      dot.style.animation = 'qs-blink 2s infinite';
+      label.textContent = 'Demo';
+    }
+  }
+
+  // ---- Scrape current page for /page command ----
+  function scrapePageForAnalysis() {
+    const url = window.location.href;
+    const title = document.title;
+
+    // Use chatPanel's ticker detection if available
+    const ticker = (typeof QSChatPanel !== 'undefined' && QSChatPanel.detectTickerFromUrl)
+      ? QSChatPanel.detectTickerFromUrl(url)
+      : null;
+
+    const bodyText = document.body ? document.body.innerText.slice(0, 5000) : '';
+
+    // Extract tables
+    const tables = [];
+    let tableCount = 0;
+    document.querySelectorAll('table').forEach(table => {
+      if (tableCount >= 4) return;
+      const rows = [];
+      table.querySelectorAll('tr').forEach(tr => {
+        const cells = Array.from(tr.querySelectorAll('th, td')).map(td => td.innerText.trim()).filter(Boolean);
+        if (cells.length > 0) rows.push(cells);
+      });
+      if (rows.length > 1 && rows.length <= 30) { tables.push(rows); tableCount++; }
+    });
+
+    return { url, title, ticker, bodyText, tables };
+  }
+
+
 
   initDrag();
 
