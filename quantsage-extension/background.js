@@ -7,9 +7,11 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
     chrome.notifications.create('qs-welcome', {
       type: 'basic',
-      iconUrl: 'icons/icon48.png',
+      iconUrl: 'icons/icon128.png',
       title: 'QuantSage Installed!',
       message: 'Your AI financial analyst is ready. Click the extension icon or use the floating chat panel on any webpage.'
+    }).catch(err => {
+      console.warn('QuantSage: Could not show welcome notification', err && err.message);
     });
 
     // Set up default alarm
@@ -153,9 +155,11 @@ async function checkPriceAlerts() {
         const currency = quote.currency === 'INR' ? '₹' : '$';
         chrome.notifications.create(`qs-alert-${alert.id}`, {
           type: 'basic',
-          iconUrl: 'icons/icon48.png',
+          iconUrl: 'icons/icon128.png',
           title: `QuantSage Alert: ${alert.ticker}`,
           message: `${alert.ticker} has reached ${currency}${currentPrice.toFixed(2)} (alert: ${alert.direction} ${currency}${alert.price})`
+        }).catch(err => {
+          console.warn('QuantSage: Could not show alert notification', err && err.message);
         });
 
         // Mark alert as triggered
