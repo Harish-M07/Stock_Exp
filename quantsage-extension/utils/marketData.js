@@ -71,16 +71,25 @@ const QSMarketData = (() => {
     return results;
   }
 
+  function getDataSource() {
+    if (typeof QSAPI !== 'undefined' && QSAPI.getDataSource) {
+      return QSAPI.getDataSource();
+    }
+    return 'mock';
+  }
+
   return {
     getQuote,
     getHistoricalData,
     getCompanyOverview,
     getMarketIndices,
     getCommodities,
-    getBatchQuotes
+    getBatchQuotes,
+    getDataSource
   };
 })();
 
 if (typeof window !== 'undefined') {
   window.QSMarketData = QSMarketData;
 }
+

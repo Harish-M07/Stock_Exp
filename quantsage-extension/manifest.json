@@ -11,9 +11,10 @@
     "contextMenus"
   ],
   "host_permissions": [
-    "https://www.alphavantage.co/*",
+    "https://military-jobye-haiqstudios-14f59639.koyeb.app/*",
     "https://query1.finance.yahoo.com/*",
     "https://query2.finance.yahoo.com/*",
+    "https://www.alphavantage.co/*",
     "https://finnhub.io/*"
   ],
   "background": {
